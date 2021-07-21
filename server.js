@@ -3,12 +3,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
+const helmet = require('helmet')
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
 
 const app = express();
 
+app.use(helmet());
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
 
@@ -49,4 +51,5 @@ const server = app.listen(portNum, () => {
   }
 });
 
+const io = socket(server)
 module.exports = app; // For testing
