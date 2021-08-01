@@ -4,24 +4,26 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const helmet = require('helmet');
+const cors = require('cors');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
 
 const app = express();
-
-app.use(helmet());
+app.use(cors());
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/assets', express.static(process.cwd() + '/assets'));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Setting the powered by header to be fake
-app.use(function (req, res, next) {
-  res.setHeader('X-Powered-By', 'PHP 7.4.3');
-  next();
-});
+// newest versions of helmet.js automatically does below protection steps but we have to set them manually here
+// because freecodecamp require us to use older helmet version
+app.use(helmet.noSniff());
+app.use(helmet.xssFilter());
+app.use(helmet.noCache());
+app.use(helmet.hidePoweredBy({ setTo: 'PHP 7.4.3' }));
+
 // Index page (static HTML)
 app.route('/').get(function (req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
