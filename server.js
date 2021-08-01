@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
-const helmet = require('helmet')
+const helmet = require('helmet');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
@@ -17,20 +17,28 @@ app.use('/assets', express.static(process.cwd() + '/assets'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Setting the powered by header to be fake
+app.use(function (req, res, next) {
+  res.setHeader('X-Powered-By', 'PHP 7.4.3');
+  next();
+});
 // Index page (static HTML)
-app.route('/')
-  .get(function (req, res) {
-    res.sendFile(process.cwd() + '/views/index.html');
-  }); 
+app.route('/').get(function (req, res) {
+  res.sendFile(process.cwd() + '/views/index.html');
+});
 
 //For FCC testing purposes
 fccTestingRoutes(app);
-    
+
 // 404 Not Found Middleware
-app.use(function(req, res, next) {
-  res.status(404)
-    .type('text')
-    .send('Not Found');
+app.use(function (req, res, next) {
+  res.status(404).type('text').send('Not Found');
+});
+
+// Prevent caching on client-side
+app.use((req, rest, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
 });
 
 const portNum = process.env.PORT || 3000;
@@ -38,7 +46,7 @@ const portNum = process.env.PORT || 3000;
 // Set up server and tests
 const server = app.listen(portNum, () => {
   console.log(`Listening on port ${portNum}`);
-  if (process.env.NODE_ENV==='test') {
+  if (process.env.NODE_ENV === 'test') {
     console.log('Running Tests...');
     setTimeout(function () {
       try {
@@ -51,5 +59,5 @@ const server = app.listen(portNum, () => {
   }
 });
 
-const io = socket(server)
+const io = socket(server);
 module.exports = app; // For testing
